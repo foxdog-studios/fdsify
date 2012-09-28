@@ -29,6 +29,12 @@ class Spotify:
     def toggle(self):
         self.xdotool.key(self.wid, 'space')
 
+    def change_volume(self, delta):
+        if delta == 0:
+            return
+        key = 'Up' if delta > 0 else 'Down'
+        for i in range(abs(delta)):
+            self.xdotool.key(self.wid, 'Ctrl+%s' % (key,))
 
 class Decks:
     def __init__(self, left, right):
@@ -63,7 +69,7 @@ def main(argv=None):
     right = Spotify(xdotool, args.right)
     decks = Decks(left, right)
 
-    left.toggle()
+    left.change_volume(-7)
 
     return 0
 
