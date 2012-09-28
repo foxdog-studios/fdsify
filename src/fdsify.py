@@ -2,7 +2,27 @@
 
 from argparse import ArgumentParser
 from subprocess import check_call
+import os
 import sys
+
+class DbusSend:
+    def __init__(self, path, user):
+        self.path = path
+        self.user = user
+
+    def call(self, command):
+        with open(os.devnull) as stdout:
+            check_call((
+                    '/usr/bin/sudo', '-u', self.user,
+                    self.path,
+                    '--print-reply',
+                    '--dest=org.mpris.MediaPlayer2.spotify',
+                    '/org/mpris/MediaPlayer2',
+                    'org.mpris.MediaPlayer2.Player.%s' % (command,)
+                ),
+                stdout=stdout,
+            )
+
 
 class XDoTool:
     def __init__(self, path):
@@ -19,15 +39,19 @@ class XDoTool:
 
 
 class Spotify:
-    def __init__(self, xdotool, wid):
+    def __init__(self, xdotool, dbus_send, wid):
+        self.dbus_send = dbus_send
         self.xdotool = xdotool
         self.wid = wid
 
     def __str__(self):
-        return 'Spotify(%d)' % (self.wid,)
+        return 'Spotify(%s, %d)' % (self.dbus_send.user, self.wid,)
+
+    def pause(self):
+        self.dbus_send.call('Pause')
 
     def toggle(self):
-        self.xdotool.key(self.wid, 'space')
+        self.dbus_send.call('PlayPause')
 
     def change_volume(self, delta):
         if delta == 0:
@@ -62,12 +86,15 @@ class Decks:
 def build_argument_parser():
     ap = ArgumentParser()
     add = ap.add_argument
+    add('-d', '--dbussend', default='/usr/bin/dbus-send')
     add('-x', '--xdotool', default='/usr/bin/xdotool',
         help='The absolute path of the xdotool executable.')
-    add('left', type=int,
+    add('left_username', help='The owner of the left deck\'s unix username')
+    add('left_wid', type=int,
         help='The WID of the main window of the Spotify instance to be the '
              'left deck.')
-    add('right', type=int,
+    add('right_username', help='The owner of the right deck\'s unix username')
+    add('right_wid', type=int,
         help='The WID of the main window of the Spotify instance to be the '
              'right deck.')
     return ap
@@ -79,14 +106,20 @@ def main(argv=None):
     args = build_argument_parser().parse_args(args=argv[1:])
 
     xdotool = XDoTool(args.xdotool)
-    left = Spotify(xdotool, args.left)
-    right = Spotify(xdotool, args.right)
+    left = Spotify(
+            xdotool,
+            DbusSend(args.dbussend, args.left_username),
+            args.left_wid,
+        )
+    right = Spotify(
+            xdotool,
+            DbusSend(args.dbussend, args.right_username),
+            args.right_wid,
+        )
     decks = Decks(left, right)
 
-    decks.crossfade(-10)
-    decks.mute()
-    decks.left.change_volume(10)
-    decks.crossfade(10)
+    decks.left.toggle()
+
 
     return 0
 

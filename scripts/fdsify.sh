@@ -157,7 +157,7 @@ if [[ "${run}" == 'true' ]]; then
     done
 
     echo 'Launching FDSify'
-    ./src/fdsify.py ${wids[@]}
+    ./src/fdsify.py "${users[0]}" ${wids[1]} "${users[1]}" ${wids[2]}
 
     echo -n 'Waiting for all Spotify instances to exit ... '
     wait
