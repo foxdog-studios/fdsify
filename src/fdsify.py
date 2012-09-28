@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser
+from functools import partial
 from subprocess import check_call
 import sys
+import tkinter as tk
 
 class XDoTool:
     def __init__(self, path):
@@ -32,12 +34,19 @@ class Spotify:
     def change_volume(self, delta):
         if delta == 0:
             return
-        key = 'Up' if delta > 0 else 'Down'
+        key = 'Ctrl+%s' % ('Up' if delta > 0 else 'Down',)
         for i in range(abs(delta)):
-            self.xdotool.key(self.wid, 'Ctrl+%s' % (key,))
+            self.xdotool.key(self.wid, key)
 
     def mute(self):
         self.change_volume(-10)
+
+    def volumn_down(self, delta):
+        self.change_volume(-delta)
+
+    def volumn_up(self, delta):
+        self.change_volume(delta)
+
 
 
 class Decks:
@@ -59,9 +68,58 @@ class Decks:
         self.right.mute()
 
 
+class FdsifyGui:
+    def __init__(self, decks):
+        self.root = tk.Tk()
+        self.decks = decks
+
+        bindings = [
+            # Crossfade
+            ['<Left>', decks.crossfade, -1],
+            ['<Right>', decks.crossfade,  1],
+
+            # Left deck volume
+            ['<Home>', decks.left.volumn_up, 1],
+            ['<End>', decks.left.volumn_down, 1],
+
+            # Right deck volume
+            ['<Prior>', decks.right.volumn_up, 1],
+            ['<Next>', decks.right.volumn_down, 1],
+
+            # Left/right mute
+            ['n', decks.left.mute],
+            ['m', decks.right.mute],
+
+            # Left/right autofade
+            ['a', self._autofade_left],
+            ['s', self._autofade_right],
+        ]
+
+        for binding in bindings:
+            event = binding[0]
+            method = binding[1]
+            args = binding[2:]
+            callback = partial(self._callback, method, *args)
+            self.root.bind_all(event, callback)
+
+    def _callback(self, *args):
+        # Ignore the event object at the last index.
+        args[0](*args[1:-1])
+
+    def _autofade_left(self):
+        self.decks.crossfade(-10)
+
+    def _autofade_right(self):
+        self.decks.crossfade(10)
+
+    def mainloop(self):
+        self.root.mainloop()
+
+
 def build_argument_parser():
     ap = ArgumentParser()
     add = ap.add_argument
+    add('-r', '--reset', action='store_true', default=False)
     add('-x', '--xdotool', default='/usr/bin/xdotool',
         help='The absolute path of the xdotool executable.')
     add('left', type=int,
@@ -83,10 +141,14 @@ def main(argv=None):
     right = Spotify(xdotool, args.right)
     decks = Decks(left, right)
 
-    decks.crossfade(-10)
-    decks.mute()
-    decks.left.change_volume(10)
-    decks.crossfade(10)
+    if args.reset:
+        left.change_volume(10)
+        right.change_volume(-10)
+
+    tk.NoDefaultRoot()
+
+    gui = FdsifyGui(decks)
+    gui.mainloop()
 
     return 0
 
