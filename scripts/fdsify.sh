@@ -12,7 +12,7 @@ usage='
 
     Usage:
 
-        $ fdsify.sh [-cRS] USER_1 LOGIN_1 PASSWORD_1 [...]
+        $ fdsify.sh [-cRS] USER_1 LOGIN_1 PASSWORD_1 USER_2 LOGIN_2 PASSWORD_2
 
     -c  Clean up before existing.
 
@@ -108,16 +108,9 @@ function user_pids
 # = User details                                                              =
 # =============================================================================
 
-users=( '' )
-logins=( '' )
-passwords=( '' )
-
-while [[ ${#} -gt 0 ]]; do
-    users=( ${users[@]} ${1} )
-    logins=( ${logins[@]} ${2} )
-    passwords=( ${passwords[@]} ${3} )
-    shift 3
-done
+users=( ${1} ${4} )
+logins=( ${2} ${5} )
+passwords=( ${3} ${6} )
 
 # =============================================================================
 # = Set up                                                                    =

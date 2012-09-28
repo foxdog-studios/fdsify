@@ -1,6 +1,6 @@
 FDSify
 ======
 
-FDSify enables Arch Linux users to take N Spotify premium accounts and turn
-them into a set of virtrual deck.
+FDSify enables Arch Linux users to take two Spotify premium accounts and turn
+them into virtrual decks.
 
