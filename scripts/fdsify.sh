@@ -154,8 +154,8 @@ if [[ "${run}" == 'true' ]]; then
     done
     unset wids[0]
 
-    for wid in ${wids[@]}; do
-        wmctrl -i -r "${wid}" -t "${desktop_number}"
+    for (( i = ${#wids[@]} ; i > 0; i--)); do
+        wmctrl -i -r "${wids[$i]}" -t "${desktop_number}"
     done
 
     echo 'Launching FDSify'
