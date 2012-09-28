@@ -44,6 +44,12 @@ class Decks:
     def __str__(self):
         return 'Decks(%s, %s)' % (self.left, self.right)
 
+    def crossfade(self, delta):
+        d = 1 if delta > 0 else -1
+        for i in range(abs(delta)):
+            self.left.change_volume(-d)
+            self.right.change_volume(d)
+
 
 def build_argument_parser():
     ap = ArgumentParser()
@@ -69,7 +75,7 @@ def main(argv=None):
     right = Spotify(xdotool, args.right)
     decks = Decks(left, right)
 
-    left.change_volume(-7)
+    decks.crossfade(-10)
 
     return 0
 
