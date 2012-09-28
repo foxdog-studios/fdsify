@@ -4,6 +4,7 @@ set -o errexit
 set -o nounset
 
 clean='false'
+desktop_number=0
 run='true'
 setup='true'
 
@@ -12,7 +13,8 @@ usage='
 
     Usage:
 
-        $ fdsify.sh [-cRS] [-d desktop_number] USER_1 LOGIN_1 PASSWORD_1 USER_2 LOGIN_2 PASSWORD_2
+        $ fdsify.sh [-cRS] [-d desktop_number] USER_L LOGIN_L PASSWORD_L
+                    USER_R LOGIN_R PASSWORD_R
 
     -c  clean up before exiting
 
@@ -22,7 +24,7 @@ usage='
 
     -S  do not perform set up
 '
-desktop_number=0
+
 while getopts ':cd:RS' opt; do
     case "${opt}" in
         c) clean='true' ;;
@@ -120,6 +122,10 @@ passwords=( ${3} ${6} )
 # =============================================================================
 
 if [[ "${setup}" == 'true' ]]; then
+    if sudo killall -9 python3 spotify; then
+        echo 'Killed old Spotify instances'
+    fi
+
     echo 'Setting up FDSify.'
     for user in ${users[@]}; do
         if ! user_exists "${user}"; then
@@ -157,7 +163,21 @@ if [[ "${run}" == 'true' ]]; then
     done
 
     echo 'Launching FDSify'
-    ./src/fdsify.py "${users[0]}" ${wids[1]} "${users[1]}" ${wids[2]}
+    ./src/fdsify.py -r "${users[0]}" ${wids[1]} "${users[1]}" ${wids[2]} &
+    while true; do
+        wid=$(wmctrl -l | grep FDSify | cut --delimiter=' ' --fields=1)
+        if [[ -n "${wid}" ]]; then
+            break
+        fi
+        sleep 0.1
+    done
+    wmctrl -i -r "${wid}" -t "${desktop_number}"
+
+    wmctrl -s 1
+    xdotool key alt+shift+space key alt+space
+    for i in {1..10}; do
+        xdotool key alt+h
+    done
 
     echo -n 'Waiting for all Spotify instances to exit ... '
     wait
