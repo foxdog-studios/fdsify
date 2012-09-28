@@ -128,7 +128,7 @@ if [[ "${setup}" == 'true' ]]; then
     for user in ${users[@]}; do
         if ! user_exists "${user}"; then
             echo "Creating user ${user}."
-            sudo useradd --create-home "${user}"
+            sudo useradd --create-home --groups audio "${user}"
         fi
     done
 fi
