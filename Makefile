@@ -8,7 +8,7 @@ clean: ${CREDS}
 .PHONY: clean
 
 run: ${CREDS}
-	${FDSIFY} `cat ${CREDS}`
+	${FDSIFY} -d 1 `cat ${CREDS}`
 .PHONY: run
 
 setup: ${CREDS}
