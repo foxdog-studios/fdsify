@@ -90,7 +90,7 @@ function spotify_wid
         done
         sleep 0.1
     done
-    echo "WID for user ${1} is ${main_wid}"
+    echo "WID for Spodity instance with PID  ${1} is ${main_wid}"
 }
 
 function user_exists
@@ -137,9 +137,6 @@ fi
 # =============================================================================
 
 if [[ "${run}" == 'true' ]]; then
-    echo 'Running FDSify'
-
-    pids=( '' )
     wids=( '' )
     for (( i = 0 ; i < "${#users[@]}" ; i++ )); do
         user="${users[$i]}"
@@ -152,12 +149,14 @@ if [[ "${run}" == 'true' ]]; then
             sleep 0.1
         done
         echo "PID of ${user}'s Spotify is ${pid}"
-        pids=( "${pids[@] }" "${pid}" )
 
         spotify_wid "${pid}" "${login}" "${password}"
         wids=( "${wids[@]}" "${main_wid}" )
     done
-    unset pids[0] wids[0]
+    unset wids[0]
+
+    echo 'Launching FDSify'
+    ./src/fdsify.py ${wids[@]}
 
     echo -n 'Waiting for all Spotify instances to exit ... '
     wait
