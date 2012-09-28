@@ -16,14 +16,11 @@ cd -- "${REPO}"
 mkdir -p config/
 rm -f config/credentials
 
-while true; do
+for deck in 'left' 'right'; do
+    echo "${deck} deck"
     read -p 'Unix user: ' user
     read -p 'Spotify user: ' login
     read -p 'Spotify password: ' password
     echo "${user}" "${login}" "${password}" >> config/credentials
-    read -p 'Another? [y]: ' response
-    if [[ "${response}" != 'y' ]]; then
-        break
-    fi
 done
 
