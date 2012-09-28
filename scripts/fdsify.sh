@@ -12,18 +12,21 @@ usage='
 
     Usage:
 
-        $ fdsify.sh [-cRS] USER_1 LOGIN_1 PASSWORD_1 [...]
+        $ fdsify.sh [-cRS] [-d desktop_number] USER_1 LOGIN_1 PASSWORD_1 USER_2 LOGIN_2 PASSWORD_2
 
-    -c  Clean up before existing.
+    -c  clean up before exiting
 
-    -R  Do not run Spotify.
+    -d  the number of the desktop to place the spotify windows on
 
-    -S  Do not perform set up.
+    -R  do not run Spotify
+
+    -S  do not perform set up
 '
-
-while getopts ':cRS' opt; do
+desktop_number=0
+while getopts ':cd:RS' opt; do
     case "${opt}" in
         c) clean='true' ;;
+        d) desktop_number="${OPTARG}" ;;
         R) run='false' ;;
         S) setup='false' ;;
         \?|*)
@@ -108,16 +111,9 @@ function user_pids
 # = User details                                                              =
 # =============================================================================
 
-users=( '' )
-logins=( '' )
-passwords=( '' )
-
-while [[ ${#} -gt 0 ]]; do
-    users=( ${users[@]} ${1} )
-    logins=( ${logins[@]} ${2} )
-    passwords=( ${passwords[@]} ${3} )
-    shift 3
-done
+users=( ${1} ${4} )
+logins=( ${2} ${5} )
+passwords=( ${3} ${6} )
 
 # =============================================================================
 # = Set up                                                                    =
@@ -155,6 +151,11 @@ if [[ "${run}" == 'true' ]]; then
         wids=( "${wids[@]}" "${main_wid}" )
     done
     unset wids[0]
+
+    for wid in ${wids[@]}; do
+        echo "${wid}"
+        wmctrl -i -r "${wid}" -t "${desktop_number}"
+    done
 
     echo 'Launching FDSify'
     ./src/fdsify.py ${wids[@]}
