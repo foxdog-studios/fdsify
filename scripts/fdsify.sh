@@ -34,7 +34,7 @@ while getopts ':cRS' opt; do
 done
 shift $(( ${OPTIND} - 1 ))
 
-if [[ ${#} -lt 1 ]]; then
+if [[ ${#} -lt 3 ]]; then
     echo "${usage}"
     exit 1
 fi
@@ -54,6 +54,9 @@ function spotify_pid
 
 function spotify_wid
 {
+    local wid wids
+
+    # Wait for the first proper window.
     while true; do
         wids="$(xdotool search --pid "${1}" 2> /dev/null)"
         if [[ "$(echo "${wids}" | wc -l)" -eq 2 ]]; then
@@ -61,6 +64,8 @@ function spotify_wid
         fi
         sleep 0.1
     done
+
+    # If required, log the user in.
     for wid in ${wids}; do
         if xdotool getwindowgeometry "${wid}" | grep --quiet 320x405; then
             echo "Logging in for user ${1}"
@@ -71,6 +76,21 @@ function spotify_wid
             break
         fi
     done
+
+    # Find the ID of the main windows.
+    main_wid=''
+    while [[ -z "${main_wid}" ]]; do
+        wids="$(xdotool search --pid "${1}" 2> /dev/null)"
+        for wid in ${wids}; do
+            if [[ "$(xdotool getwindowname "${wid}")" == \
+                  'Spotify Premium - Linux Preview' ]]; then
+                main_wid="${wid}"
+                break
+            fi
+        done
+        sleep 0.1
+    done
+    echo "WID for user ${1} is ${main_wid}"
 }
 
 function user_exists
@@ -120,6 +140,7 @@ if [[ "${run}" == 'true' ]]; then
     echo 'Running FDSify'
 
     pids=( '' )
+    wids=( '' )
     for (( i = 0 ; i < "${#users[@]}" ; i++ )); do
         user="${users[$i]}"
         login="${logins[$i]}"
@@ -134,8 +155,9 @@ if [[ "${run}" == 'true' ]]; then
         pids=( "${pids[@] }" "${pid}" )
 
         spotify_wid "${pid}" "${login}" "${password}"
+        wids=( "${wids[@]}" "${main_wid}" )
     done
-    unset pids[0]
+    unset pids[0] wids[0]
 
     echo -n 'Waiting for all Spotify instances to exit ... '
     wait
