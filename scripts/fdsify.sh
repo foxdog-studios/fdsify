@@ -44,6 +44,7 @@ function spotify_pid
     pid=$(
         ps --no-header -o pid,comm -u "${1}" \
             | grep spotify \
+            | sed 's/^ *//g' \
             | cut --delimiter=' ' --fields=1
     )
     if [[ -z $pid ]]; then
