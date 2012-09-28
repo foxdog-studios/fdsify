@@ -1,24 +1,20 @@
 .DEFAULT_GOAL := run
 
+CREDS := config/credentials
 FDSIFY := ./scripts/fdsify.sh
 
-USER_1 := spotify1
-USER_2 := spotify2
-USERS := ${USER_1} ${USER_2}
-
-clean:
-	${FDSIFY} -cRS ${USERS}
+clean: ${CREDS}
+	${FDSIFY} -cRS `cat ${CREDS}`
 .PHONY: clean
 
-run:
-	${FDSIFY} ${USERS}
+run: ${CREDS}
+	${FDSIFY} `cat ${CREDS}`
 .PHONY: run
 
-run-clean:
-	${FDSIFY} -c ${USERS}
-.PHONY: run-clean
-
-setup:
-	${FDSIFY} -R ${USERS}
+setup: ${CREDS}
+	${FDSIFY} -R `cat ${CREDS}`
 .PHONY: setup
+
+${CREDS}:
+	./scripts/credentials.sh
 

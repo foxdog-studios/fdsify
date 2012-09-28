@@ -12,7 +12,7 @@ usage='
 
     Usage:
 
-        $ fdsify.sh [-cRS] USER_1 [USER_2 ...]
+        $ fdsify.sh [-cRS] USER_1 LOGIN_1 PASSWORD_1 [...]
 
     -c  Clean up before existing.
 
@@ -39,6 +39,40 @@ if [[ ${#} -lt 1 ]]; then
     exit 1
 fi
 
+function spotify_pid
+{
+    pid=$(
+        ps --no-header -o pid,comm -u "${1}" \
+            | grep spotify \
+            | cut --delimiter=' ' --fields=1
+    )
+    if [[ -z $pid ]]; then
+        exit 1
+    fi
+    echo "${pid}"
+}
+
+function spotify_wid
+{
+    while true; do
+        wids="$(xdotool search --pid "${1}" 2> /dev/null)"
+        if [[ "$(echo "${wids}" | wc -l)" -eq 2 ]]; then
+            break
+        fi
+        sleep 0.1
+    done
+    for wid in ${wids}; do
+        if xdotool getwindowgeometry "${wid}" | grep --quiet 320x405; then
+            echo "Logging in for user ${1}"
+            xdotool type --window "${wid}" "${2}"
+            xdotool key --window "${wid}" Tab
+            xdotool type --window "${wid}" "${3}"
+            xdotool key --window "${wid}" Return
+            break
+        fi
+    done
+}
+
 function user_exists
 {
     cut --delimiter=: --fields=1 /etc/passwd | grep --quiet -- "${1}"
@@ -46,10 +80,23 @@ function user_exists
 
 function user_pids
 {
-    ps -o pid -U "${1}" h
+    ps --no-header -o pid -u "${1}"
 }
 
-users=(${@})
+# =============================================================================
+# = User details                                                              =
+# =============================================================================
+
+users=( '' )
+logins=( '' )
+passwords=( '' )
+
+while [[ ${#} -gt 0 ]]; do
+    users=( ${users[@]} ${1} )
+    logins=( ${logins[@]} ${2} )
+    passwords=( ${passwords[@]} ${3} )
+    shift 3
+done
 
 # =============================================================================
 # = Set up                                                                    =
@@ -70,14 +117,29 @@ fi
 # =============================================================================
 
 if [[ "${run}" == 'true' ]]; then
-    echo 'Running FDSify.'
-    for user in "${users[@]}"; do
-        echo "Launching Spotify as ${user}."
+    echo 'Running FDSify'
+
+    pids=( '' )
+    for (( i = 0 ; i < "${#users[@]}" ; i++ )); do
+        user="${users[$i]}"
+        login="${logins[$i]}"
+        password="${passwords[$i]}"
+
+        echo "Launching Spotify as ${user}"
         sudo su "${user}" spotify &> /dev/null &
+        while ! pid=$(spotify_pid "${user}"); do
+            sleep 0.1
+        done
+        echo "PID of ${user}'s Spotify is ${pid}"
+        pids=( "${pids[@] }" "${pid}" )
+
+        spotify_wid "${pid}" "${login}" "${password}"
     done
+    unset pids[0]
+
     echo -n 'Waiting for all Spotify instances to exit ... '
     wait
-    echo 'done.'
+    echo 'done'
 fi
 
 # =============================================================================
@@ -85,15 +147,15 @@ fi
 # =============================================================================
 
 if [[ "${clean}" == 'true' ]]; then
-    echo 'Cleaning up.'
+    echo 'Cleaning up'
     for user in ${users[@]}; do
         if user_exists "${user}"; then
             if pids=$(user_pids "${user}"); then
-                echo "Killing all processes owned by ${user}."
+                echo "Killing all processes owned by ${user}"
                 sudo kill -9 ${pids}
             fi
 
-            echo "Deleting user ${user}."
+            echo "Deleting user ${user}"
             sudo userdel --remove "${user}" 2> /dev/null
         fi
     done
