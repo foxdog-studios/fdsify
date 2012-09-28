@@ -16,7 +16,8 @@ cd -- "${REPO}"
 mkdir -p config/
 rm -f config/credentials
 
-for i in 1 2; do
+for deck in 'left' 'right'; do
+    echo "${deck} deck"
     read -p 'Unix user: ' user
     read -p 'Spotify user: ' login
     read -p 'Spotify password: ' password
