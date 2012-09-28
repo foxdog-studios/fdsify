@@ -73,6 +73,8 @@ class FdsifyGui:
         self.root = tk.Tk()
         self.decks = decks
 
+        self.root.title('FDSify')
+
         bindings = [
             # Crossfade
             ['<Left>', decks.crossfade, -1],
@@ -144,6 +146,7 @@ def main(argv=None):
     if args.reset:
         left.change_volume(10)
         right.change_volume(-10)
+        left.toggle()
 
     tk.NoDefaultRoot()
 
