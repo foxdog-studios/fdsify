@@ -5,6 +5,7 @@ from functools import partial
 from subprocess import check_call
 import sys
 import tkinter as tk
+from tkinter import font
 
 class XDoTool:
     def __init__(self, path):
@@ -68,12 +69,21 @@ class Decks:
         self.right.mute()
 
 
+INST ='''
+          | Left |    Right |
+-----------------------------
+Crossfade |   <- |       -> |
+Vol. Up   | Home |   PageUp |
+Vol. Down |  End | PageDown |
+Mute      |    n |        m |
+Auto. CF  |    a |        s |
+'''[1:-1]
+
 class FdsifyGui:
     def __init__(self, decks):
         self.root = tk.Tk()
         self.decks = decks
 
-        self.root.title('FDSify')
 
         bindings = [
             # Crossfade
@@ -103,6 +113,16 @@ class FdsifyGui:
             args = binding[2:]
             callback = partial(self._callback, method, *args)
             self.root.bind_all(event, callback)
+
+        self.root.title('FDSify')
+        self.root.columnconfigure(0, weight=1)
+        self.root.rowconfigure(0, weight=1)
+
+        self.font = font.Font(root=self.root, family='mono')
+
+        inst = tk.Label(master=self.root, font=self.font, justify=tk.LEFT,
+                        text=INST)
+        inst.grid(row=0, column=0, padx=5, pady=5, stick=tk.NSEW)
 
     def _callback(self, *args):
         # Ignore the event object at the last index.
