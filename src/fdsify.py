@@ -36,6 +36,10 @@ class Spotify:
         for i in range(abs(delta)):
             self.xdotool.key(self.wid, 'Ctrl+%s' % (key,))
 
+    def mute(self):
+        self.change_volume(-10)
+
+
 class Decks:
     def __init__(self, left, right):
         self.left = left
@@ -49,6 +53,10 @@ class Decks:
         for i in range(abs(delta)):
             self.left.change_volume(-d)
             self.right.change_volume(d)
+
+    def mute(self):
+        self.left.mute()
+        self.right.mute()
 
 
 def build_argument_parser():
@@ -76,6 +84,9 @@ def main(argv=None):
     decks = Decks(left, right)
 
     decks.crossfade(-10)
+    decks.mute()
+    decks.left.change_volume(10)
+    decks.crossfade(10)
 
     return 0
 
