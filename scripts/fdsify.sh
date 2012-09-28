@@ -153,7 +153,6 @@ if [[ "${run}" == 'true' ]]; then
     unset wids[0]
 
     for wid in ${wids[@]}; do
-        echo "${wid}"
         wmctrl -i -r "${wid}" -t "${desktop_number}"
     done
 
