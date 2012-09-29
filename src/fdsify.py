@@ -176,14 +176,15 @@ class FdsifyGui:
             callback = partial(self._callback, method, *args)
             self.root.bind_all(event, callback)
 
+        self.root.configure(background='black')
         self.root.title('FDSify')
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
 
         self.font = font.Font(root=self.root, family='mono')
 
-        inst = tk.Label(master=self.root, font=self.font, justify=tk.LEFT,
-                        text=INST)
+        inst = tk.Label(master=self.root, background='black', font=self.font,
+                        foreground='green', justify=tk.LEFT, text=INST)
         inst.grid(row=0, column=0, padx=5, pady=5, stick=tk.NSEW)
 
     def _callback(self, *args):
