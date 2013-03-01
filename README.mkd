@@ -10,7 +10,6 @@ Set up
 You must be running Arch Linux, be using XMonad, and have two Spotify premium
 accounts. Then, run the setup script
 
-    :::console
     $ $REPO/scripts/setup-arch.sh
 
 
