@@ -4,6 +4,21 @@ FDSify
 FDSify enables Arch Linux users to take two Spotify premium accounts and turn
 them into virtrual decks.
 
+Set up
+------
+
+You must be running Arch Linux, be using XMonad, and have two Spotify premium
+accounts. Then, run the setup script
+
+    :::console
+    $ $REPO/scripts/setup-arch.sh
+
+
+Usage
+-----
+
+Run `make` follow teh on-screen instructions.
+
 License
 -------
 
