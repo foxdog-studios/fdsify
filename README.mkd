@@ -4,3 +4,9 @@ FDSify
 FDSify enables Arch Linux users to take two Spotify premium accounts and turn
 them into virtrual decks.
 
+License
+-------
+
+This file by Foxdog Studios Ltd is licensed under a Creative Commons
+Attribution 3.0 Unported License.
+
